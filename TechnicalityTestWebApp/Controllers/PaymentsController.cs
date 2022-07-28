@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using TechnicalityTestWebApp;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text;
-using Microsoft.Extensions.Configuration;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace TechnicalityTestWebApp.Controllers
 {
@@ -84,6 +80,12 @@ namespace TechnicalityTestWebApp.Controllers
                 var requestContent = new StringContent(chargeJson, Encoding.UTF8, "application/json");
                 var url = _config["ApiUrl"] + "/CCCharge";
                 var response = await _httpClient.PostAsync(url, requestContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string contentString = await response.Content.ReadAsStringAsync();
+                    payment.CreditCardChargeId = JsonSerializer.Deserialize<int>(contentString);
+                }
 
                 payment.PaymentDateTime = DateTime.UtcNow;
                 _context.Add(payment);
