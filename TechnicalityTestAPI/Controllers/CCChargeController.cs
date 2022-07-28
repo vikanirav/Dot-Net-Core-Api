@@ -28,5 +28,12 @@ namespace TechnicalityTestAPI.Controllers
             int creditCardChargeId = _cCChargeService.CreateCCCharge(model.CustomerId, model.Amount);
             return creditCardChargeId;
         }
+
+        [HttpPut]
+        public IActionResult UpdateCCCharge(CCChargeViewModel model)
+        {
+            _cCChargeService.UpdateCCCharge(model.ChargeId, model.Amount);
+            return Ok();
+        }
     }
 }
