@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using TechnicalityTestWebApp.Models;
 
 namespace TechnicalityTestWebApp.Controllers
 {
@@ -70,7 +71,7 @@ namespace TechnicalityTestWebApp.Controllers
             if (ModelState.IsValid)
             {
                 // Call Credit Card API
-                var vm = new Models.CCChargeViewModel
+                var vm = new CCChargeViewModel
                 {
                     CustomerId = payment.CustomerId,
                     Amount = payment.Amount
@@ -129,8 +130,27 @@ namespace TechnicalityTestWebApp.Controllers
             {
                 try
                 {
-                    _context.Update(payment);
-                    await _context.SaveChangesAsync();
+                    if (payment.CreditCardChargeId.HasValue)
+                    {
+                        // Call Credit Card API
+                        CCChargeViewModel vm = new CCChargeViewModel
+                        {
+                            CustomerId = payment.CustomerId,
+                            Amount = payment.Amount,
+                            ChargeId = payment.CreditCardChargeId.Value
+                        };
+
+                        var chargeJson = JsonSerializer.Serialize(vm);
+                        var requestContent = new StringContent(chargeJson, Encoding.UTF8, "application/json");
+                        var url = _config["ApiUrl"] + "/CCCharge";
+                        var response = await _httpClient.PutAsync(url, requestContent);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            _context.Update(payment);
+                            await _context.SaveChangesAsync();
+                        } 
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
